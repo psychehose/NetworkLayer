@@ -13,3 +13,9 @@ public struct BaseErrorResponseDTO: Decodable {
   public let message: String
   public let name: String
 }
+
+public struct ErrorStruct: Decodable {
+  public let status: Int
+  public let message: String
+  public let name: String
+}

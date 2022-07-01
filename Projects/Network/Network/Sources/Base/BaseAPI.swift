@@ -10,15 +10,15 @@ import Alamofire
 import Foundation
 
 
-public protocol NetworkResultProtocol {
-}
+public protocol NetworkResultProtocol { }
 
 
-public enum NetworkResult<T: Decodable> {
+public enum NetworkResult<T: Decodable, BaseErrorResponseDTO, NSError> {
   case success(T)
   case handlingError(BaseErrorResponseDTO)
   case unhandlingError(NSError)
 }
+
 
 
 
@@ -41,9 +41,9 @@ public class BaseAPI<T: TargetType> {
     self.coniguration = configuration
     self.session = Session(configuration: configuration, eventMonitors: apiLogger)
     self.sessionWithInterceptor = Session(configuration: configuration, interceptor: tokenInterceptor, eventMonitors: apiLogger)
-  }
+  } 
 
-  func fetchData<M: Decodable>(target: T, responseData: M.Type, isWithInterceptor: Bool = false, completionHandler: @escaping (NetworkResult<M>?) -> Void) {
+  func fetchData<M: Decodable>(target: T, responseData: M.Type, isWithInterceptor: Bool = false, completionHandler: @escaping (NetworkResult<M, BaseErrorResponseDTO, NSError>?) -> Void) {
 
     let session = isWithInterceptor ? self.sessionWithInterceptor : self.session
 
@@ -64,7 +64,8 @@ public class BaseAPI<T: TargetType> {
           return
         }
 
-        completionHandler(NetworkResult.success(decodedData))
+        completionHandler(.success(decodedData))
+
       } else if statusCode == 400 {
 
         guard
@@ -74,7 +75,6 @@ public class BaseAPI<T: TargetType> {
           print("Handling Error statusCode : 400 ")
           return
         }
-
 
         completionHandler(NetworkResult.handlingError(decodedData))
       } else {

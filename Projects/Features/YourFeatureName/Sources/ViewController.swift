@@ -9,6 +9,9 @@
 import Foundation
 import UIKit
 
+import RxCocoa
+import RxSwift
+
 public final class ViewController: UIViewController {
 
 
@@ -21,6 +24,7 @@ public final class ViewController: UIViewController {
     label.textColor = .purple
     label.textAlignment = .center
     label.translatesAutoresizingMaskIntoConstraints = false
+
     return label
   }()
 
@@ -33,8 +37,13 @@ public final class ViewController: UIViewController {
     button.titleLabel?.font = .systemFont(ofSize: 20, weight: .bold)
     button.translatesAutoresizingMaskIntoConstraints = false
     button.layer.cornerRadius = 14
+
     return button
   }()
+
+
+  private let disposeBag = DisposeBag()
+  private let viewModel = ViewModel()
 
 
 
@@ -59,7 +68,16 @@ public final class ViewController: UIViewController {
 
 
   private func bind() {
-    
+    let input = ViewModel.Input(tapButton: button.rx.tap.asObservable())
+
+
+    let output = viewModel.transform(input: input)
+
+    output.didTapButton
+      .subscribe(onNext: { _ in
+        print()
+      })
+      .disposed(by: disposeBag)
   }
 
 

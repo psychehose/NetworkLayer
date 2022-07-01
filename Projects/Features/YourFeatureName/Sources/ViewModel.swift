@@ -11,28 +11,30 @@ import RxCocoa
 import RxSwift
 
 final class ViewModel {
-  struct Input {
+  public struct Input {
     let tapButton: Observable<Void>
   }
   struct Output {
 //    let didTapButton: Observable<Bool>
+    let didTapButton: Observable<Void>
   }
 
   func transform(input: Input) -> Output {
 
     let didTapButton = input.tapButton
-//      .flatMapLatest {
-////        self.request()
-//      }
+      .flatMapLatest {
+        self.request()
+      }
+      .map { () }
 //      .compactMap { $0.result }
 //      .filter { $0 }
-//      .asObservable()
+      .asObservable()
 //    return Output(didTapButton: didTapButton)
-    return Output()
+    return Output(didTapButton: didTapButton)
   }
 
-  private func request<T: Decodable>() -> Observable<NetworkResult<T>> {
-    Observable<NetworkResult<T>>.create { [weak self] observer in
+  private func request<T: Decodable>() -> Observable<NetworkResult<T, BaseErrorResponseDTO, NSError>> {
+    Observable<NetworkResult>.create { [weak self] observer in
 
       NetworkService.shared.userService.resetPassword(
         resetPasswordRequestDTO: ResetPasswordRequestDTO(
@@ -44,11 +46,49 @@ final class ViewModel {
 
         if let result = result {
           switch result {
-          case .success(<#T##BaseResponseDTO<Bool>#>)
-          case .handlingError(<#T##BaseErrorResponseDTO#>)
-          case .unhandlingError(<#T##NSError#>)
+
+
+
+            
+            
+
+
+
+//            observer.on(.next(result))
+//            observer.on(.next(.success(<#T##Decodable#>)))
+            observer.on(.next(<#T##NetworkResult<Decodable, BaseErrorResponseDTO, NSError>#>))
+
+            res.result
+
+            observer.on(.next(result))
+
+            
+            var r = res
+            print(res)
+
+            res.result
+
+          case .handlingError(let baseErrorResponseDTO):
+            print("baseErrorResponseDTO\(baseErrorResponseDTO)")
+//            baseErrorResponseDTO.messa
+
+
+            baseErrorResponseDTO.message
+//            observer.on(.next(result as! NetworkResult<T>))
+
+          case .unhandlingError(let err):
+            observer.on(.error(err))
+            print("err입니다. \(err)")
           }
         }
+
+//        if let result = result {
+//          switch result {
+//          case .success(<#T##BaseResponseDTO<Bool>#>)
+//          case .handlingError(<#T##BaseErrorResponseDTO#>)
+//          case .unhandlingError(<#T##NSError#>)
+//          }
+//        }
 
 
 //        if let result = result {
@@ -72,3 +112,4 @@ final class ViewModel {
     }
   }
 }
+

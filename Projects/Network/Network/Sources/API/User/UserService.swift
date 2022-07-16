@@ -15,13 +15,13 @@ public enum UserService {
 
 extension UserService: TargetType {
   public var baseURL: String {
-    return "https://dev-jstock.ulternativetechnology.com/api"
+    return "https://"
   }
 
   public var path: String {
     switch self {
     case .resetPassword(_, let userIndex):
-      return "/user/\(userIndex)/reset-password"
+      return "/user//\(userIndex)"
     }
   }
 

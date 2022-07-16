@@ -15,8 +15,7 @@ final class ViewModel {
     let tapButton: Observable<Void>
   }
   struct Output {
-//    let didTapButton: Observable<Bool>
-    let didTapButton: Observable<Void>
+    let didTapButton: Observable<Bool>
   }
 
   func transform(input: Input) -> Output {
@@ -25,16 +24,27 @@ final class ViewModel {
       .flatMapLatest {
         self.request()
       }
-      .map { () }
-//      .compactMap { $0.result }
-//      .filter { $0 }
+      .map { response -> Bool in
+          switch response {
+          case .Success(let res):
+            guard let resVal = res.result else {
+              return false
+            }
+
+            return resVal
+          case .Failure(let handlingError):
+            handlingError.result.self
+            return false
+          }
+      }
+
       .asObservable()
 //    return Output(didTapButton: didTapButton)
     return Output(didTapButton: didTapButton)
   }
 
-  private func request<T: Decodable>() -> Observable<NetworkResult<T, BaseErrorResponseDTO, NSError>> {
-    Observable<NetworkResult>.create { [weak self] observer in
+  private func request() -> Observable<NetworkResult<BaseResponseDTO<Bool>, BaseResponseDTO<BaseErrorResponseDTO>>> {
+    Observable<NetworkResult<BaseResponseDTO<Bool>, BaseResponseDTO<BaseErrorResponseDTO>>>.create { [weak self] observer in
 
       NetworkService.shared.userService.resetPassword(
         resetPasswordRequestDTO: ResetPasswordRequestDTO(
@@ -42,70 +52,19 @@ final class ViewModel {
           password: "Qwerqq11!!"
         ),
         userIndex: 11
-      ) { result in
+      ) { result, handlingError, error in
 
-        if let result = result {
-          switch result {
+        if let err = error {
 
-
-
-            
-            
-
-
-
-//            observer.on(.next(result))
-//            observer.on(.next(.success(<#T##Decodable#>)))
-            observer.on(.next(<#T##NetworkResult<Decodable, BaseErrorResponseDTO, NSError>#>))
-
-            res.result
-
-            observer.on(.next(result))
-
-            
-            var r = res
-            print(res)
-
-            res.result
-
-          case .handlingError(let baseErrorResponseDTO):
-            print("baseErrorResponseDTO\(baseErrorResponseDTO)")
-//            baseErrorResponseDTO.messa
-
-
-            baseErrorResponseDTO.message
-//            observer.on(.next(result as! NetworkResult<T>))
-
-          case .unhandlingError(let err):
-            observer.on(.error(err))
-            print("err입니다. \(err)")
-          }
+          observer.on(.error(err))
         }
+        if let handlingError = handlingError {
 
-//        if let result = result {
-//          switch result {
-//          case .success(<#T##BaseResponseDTO<Bool>#>)
-//          case .handlingError(<#T##BaseErrorResponseDTO#>)
-//          case .unhandlingError(<#T##NSError#>)
-//          }
-//        }
-
-
-//        if let result = result {
-//          switch result {
-//          case .success(let res):
-////            single(.success(res))
-//            observer.on(.next(result)
-//
-////          case .handlingError(let res):
-////                          observer.on(<#T##event: Event<NetworkResult<Decodable>>##Event<NetworkResult<Decodable>>#>)
-////            single(.success(res))
-//
-////          case .unhandlingError(let err):
-////            single(.failure(err))
-//          }
-//        }
-
+          observer.on(.next(NetworkResult.Failure(handlingError)))
+        }
+        if let res = result {
+          observer.on(.next(NetworkResult.Success(res)))
+        }
       }
 
       return Disposables.create()
@@ -113,3 +72,7 @@ final class ViewModel {
   }
 }
 
+public enum NetworkResult<Value, HandlingError> {
+  case Success(Value)
+  case Failure(HandlingError)
+}

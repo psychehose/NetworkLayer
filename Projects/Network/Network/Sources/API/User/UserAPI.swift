@@ -13,7 +13,7 @@ protocol UserAPIProtocol {
     resetPasswordRequestDTO: ResetPasswordRequestDTO,
     userIndex: Int,
     completion: @escaping(
-      (NetworkResult<BaseResponseDTO<Bool>,BaseErrorResponseDTO, NSError>)?) -> Void
+      (BaseResponseDTO<Bool>?,BaseResponseDTO<BaseErrorResponseDTO>?, Error?)) -> Void
   )
 }
 
@@ -21,12 +21,12 @@ final public class UserAPI: BaseAPI<UserService>, UserAPIProtocol {
   public func resetPassword(
     resetPasswordRequestDTO: ResetPasswordRequestDTO,
     userIndex: Int,
-    completion: @escaping ((NetworkResult<BaseResponseDTO<Bool>, BaseErrorResponseDTO, NSError>)?) -> Void
+    completion: @escaping ((BaseResponseDTO<Bool>?,BaseResponseDTO<BaseErrorResponseDTO>?, Error?)) -> Void
   ) {
     fetchData(
       target: .resetPassword(resetPasswordRequestDTO, userIndex: userIndex),
-      responseData: BaseResponseDTO<Bool>.self) { result in
-        completion(result)
+      responseData: BaseResponseDTO<Bool>.self) { (result,handlingError, error) in
+        completion((result, handlingError,error))
       }
   }
 }

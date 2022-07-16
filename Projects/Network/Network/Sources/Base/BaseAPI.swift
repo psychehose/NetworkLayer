@@ -13,16 +13,6 @@ import Foundation
 public protocol NetworkResultProtocol { }
 
 
-public enum NetworkResult<T: Decodable, BaseErrorResponseDTO, NSError> {
-  case success(T)
-  case handlingError(BaseErrorResponseDTO)
-  case unhandlingError(NSError)
-}
-
-
-
-
-
 public class BaseAPI<T: TargetType> {
 
   let coniguration: URLSessionConfiguration
@@ -43,7 +33,7 @@ public class BaseAPI<T: TargetType> {
     self.sessionWithInterceptor = Session(configuration: configuration, interceptor: tokenInterceptor, eventMonitors: apiLogger)
   } 
 
-  func fetchData<M: Decodable>(target: T, responseData: M.Type, isWithInterceptor: Bool = false, completionHandler: @escaping (NetworkResult<M, BaseErrorResponseDTO, NSError>?) -> Void) {
+  func fetchData<M: Decodable>(target: T, responseData: M.Type, isWithInterceptor: Bool = false, completionHandler: @escaping (M?, BaseResponseDTO<BaseErrorResponseDTO>?, Error?) -> Void) {
 
     let session = isWithInterceptor ? self.sessionWithInterceptor : self.session
 
@@ -51,7 +41,8 @@ public class BaseAPI<T: TargetType> {
 
       guard let statusCode = response.response?.statusCode else {
 
-        completionHandler(.unhandlingError(NSError(domain: "Status Code is Not Found", code: -1)))
+        completionHandler(nil, nil, response.error)
+
         return
       }
 
@@ -64,26 +55,38 @@ public class BaseAPI<T: TargetType> {
           return
         }
 
-        completionHandler(.success(decodedData))
+        completionHandler(decodedData, nil, nil)
 
-      } else if statusCode == 400 {
+      }
 
-        guard
-          let data = response.data,
-          let decodedData = try? JSONDecoder().decode(BaseErrorResponseDTO.self, from: data)
+
+      else if statusCode == 400 || statusCode == 404 {
+        guard let data = response.data,
+              let decodedData = try? JSONDecoder().decode(BaseResponseDTO<BaseErrorResponseDTO>.self, from: data)
         else {
-          print("Handling Error statusCode : 400 ")
+          print("Decoding Error")
           return
         }
+        dump(decodedData)
 
-        completionHandler(NetworkResult.handlingError(decodedData))
-      } else {
+        completionHandler(nil, decodedData, nil)
+      }
 
-        let error = NSError(domain: "Error", code: response.response?.statusCode ?? .min)
+
+
+
+      else {
+
+        let error = NSError(domain: "Unhandled Error", code: response.response?.statusCode ?? .min)
         print("error statusCode is \(statusCode)")
 
-        completionHandler(.unhandlingError(error))
+
+        completionHandler(nil,nil, error)
+
       }
+
+
+
     }
   }
 }

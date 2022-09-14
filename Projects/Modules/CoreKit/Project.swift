@@ -16,7 +16,7 @@ let project = Project(
         name: "CoreKit",
         frameworkDependencies: [
             .project(target: "ThirdPartyLibraryManager", path: .relativeToModule("ThirdPartyLibraryManager")),
-            .project(target: "NetworkKit", path: .relativeToNetwork("Network")),
+            .project(target: "NetworkKit", path: .relativeToNetwork("")),
         ],
         testDependencies: []
     ),

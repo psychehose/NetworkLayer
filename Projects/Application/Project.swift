@@ -17,7 +17,7 @@ let project = Project(
         appDependencies: [
             .project(
                 target: "Features",
-                path: .relativeToFeature("Features")
+                path: .relativeToFeature("")
             )
         ],
         testDependencies: []
